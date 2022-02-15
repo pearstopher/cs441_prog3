@@ -78,7 +78,7 @@ class Robby:
     @staticmethod
     def random_location():
         # return a random location in the grid which is not a wall
-        return random.randrange(0, SIZE + 1), random.randrange(0, SIZE + 1)
+        return random.randrange(1, SIZE + 1), random.randrange(1, SIZE + 1)
 
     # Robby has five “sensors”: Current, North, South, East, and West. At any time step, these each
     # return the “value” of the respective location, where the possible values are Empty, Can, and Wall.
