@@ -10,35 +10,122 @@
 
 import numpy as np
 import random
+from enum import Enum
+
+# CONSTANTS & CONFIGURATION
+
+SIZE = 10  # Robby the Robot lives in a 10 x 10 grid, surrounded by a wall
+CHANCE = 0.5  # each grid square has a probability of 0.5 to contain a can
+
+REWARD_CAN = 10  # Robby receives a reward of 10 for each can he picks up
+REWARD_CRASH = -5  # a “reward” of −5 if he crashes into a wall
+REWARD_NO_CAN = -1  # and a reward of −1 if he tries to pick up a can in an empty square.
+
+# enumeration
+class State(Enum):
+    EMPTY = 0
+    CAN = 1
+    WALL = 2
 
 
-def generate_table(dirt_piles):
-    # create the world squares
-    a = np.zeros(9)
-    # decide if 1, 3, or 5 dirt piles
-    # piles = random.randint(0, 2) * 2 + 1  # nvm this isn't random just an arg
-    # generate locations for the piles
-    locations = random.sample(range(0, 9), dirt_piles)
-    # add dirt to locations
-    for i in locations:
-        a[i] = 1
-    # reshape and return the world, also return # dirt piles
-    return a.reshape((3, 3))
+def generate_world():
+    # the walls are also going to be represented by grid squares
+    size = SIZE + 2
+    world = np.zeros((size, size))
+
+    # loop and configure the grid
+    for i in range(world):
+        for j in range(world):
+            # set up the walls
+            if i == 0 or i == size or \
+                    j == 0 or j == size:
+                world[i][j] = State.WALL
+            # randomly place the cans
+            else:
+                if random.uniform(0, 1) <= CHANCE:
+                    world[i][j] = State.CAN
+    return world
 
 
-# types of agent:
-# (i) A simple reflex agent (in this case define a “rule table” based on the location/dirt present – just as in the
-#   book); in this case you can just make up a rule for where the robot moves next, according to its current location.
-#   Please note that the “where to move next” rule is only based on the current percept and should be fixed by the
-#   rule table (which is to say we don’t actively “learn” a movement strategy).
-#
-# (ii) A randomized agent (movement and suck/no suck are randomized). Describe explicitly how you randomize the agent.
-#
-# (iii) Apply murphy’s law with the same environment for a reflex agent. Murphy’s law: 25% of the time the suck
-#   action fails to clean the floor if it is dirty and deposits dirt onto the floor if the floor is clean; suppose
-#   also that the “dirt sensor” give the wrong answer 10% of the time.
-#
-# (iv) Apply murphy’s law conditions (as in iii) for a randomized agent.
+class Robby:
+    def __init__(self, world_table):
+        # The initial state of the grid in each episode is a random placement of cans
+        self.table = world_table
+
+        # Robby is initially placed in a random grid square
+        self.row = random.randrange(0, SIZE)
+        self.col = random.randrange(0, SIZE)
+
+    # Robby has five “sensors”: Current, North, South, East, and West. At any time step, these each
+    # return the “value” of the respective location, where the possible values are Empty, Can, and Wall.
+    def
+
+
+    # Robby has five possible actions: Move-North, Move-South, Move-East, Move-West, and Pick-Up-Can.
+    # Note: if Robby picks up a can, the can is then gone from the grid.
+
+    def up(self):
+        if self.row == 0:
+            return False
+        self.row -= 1
+        self.score -= self.PUNISHMENT
+        return True
+
+    def down(self):
+        if self.row == 2:
+            return False
+        self.row += 1
+        self.score -= self.PUNISHMENT
+        return True
+
+    def left(self):
+        if self.col == 0:
+            return False
+        self.col -= 1
+        self.score -= self.PUNISHMENT
+        return True
+
+    def right(self):
+        if self.col == 2:
+            return False
+        self.col += 1
+        self.score -= self.PUNISHMENT
+        return True
+
+    def clean(self):
+        if self.agent == 3 or self.agent == 4:
+            # introduce 25% chance of sucking failure
+            if random.randint(1, 4) == 1:
+                if self.table[self.row, self.col] == 0:
+                    self.dirt += 1  # adds new dirt
+                self.table[self.row, self.col] = 1
+                # no punishment since no movement
+                # but no reward either
+                return False
+
+        if self.table[self.row, self.col] == 1:
+            self.found += 1  # square could be clean
+        self.table[self.row, self.col] = 0
+        if self.rewards_allowed > 0:
+            self.score += self.REWARD
+            self.rewards_allowed -= 1
+            # limit # rewards to # original dirt piles
+        return True
+
+    def dirty(self):
+        # check if current square is dirty
+        found_dirt = False
+        if self.table[self.row, self.col] == 1:
+            found_dirt = True
+
+        if self.agent == 3 or self.agent == 4:
+            # introduce 10% chance of wrong result
+            if random.randint(1, 10) == 1:
+                found_dirt = not found_dirt
+
+        return found_dirt
+
+
 class Agent:
     def __init__(self, world_table, dirt_piles, agent_id):
         self.table = world_table
