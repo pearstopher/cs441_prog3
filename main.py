@@ -45,8 +45,8 @@ class Robby:
         self.world = self.generate_world()
 
         # Robby is initially placed in a random grid square
-        self.row = random.randrange(0, SIZE)
-        self.col = random.randrange(0, SIZE)
+        self.row = random.randrange(0, SIZE + 1)
+        self.col = random.randrange(0, SIZE + 1)
 
         # Keep track of the total reward gained per episode.
         self.reward = 0
