@@ -17,11 +17,15 @@ from enum import Enum
 SIZE = 10  # Robby the Robot lives in a 10 x 10 grid, surrounded by a wall
 CHANCE = 0.5  # each grid square has a probability of 0.5 to contain a can
 
-REWARD_CAN = 10  # Robby receives a reward of 10 for each can he picks up
-REWARD_CRASH = -5  # a “reward” of −5 if he crashes into a wall
-REWARD_NO_CAN = -1  # and a reward of −1 if he tries to pick up a can in an empty square.
 
-# enumeration
+# enumeration of reward values
+class Reward(Enum):
+    CAN = 10  # Robby receives a reward of 10 for each can he picks up
+    CRASH = -5  # a “reward” of −5 if he crashes into a wall
+    NO_CAN = -1  # and a reward of −1 if he tries to pick up a can in an empty square.
+
+
+# enumeration of world square states
 class State(Enum):
     EMPTY = 0
     CAN = 1
@@ -50,19 +54,71 @@ def generate_world():
 class Robby:
     def __init__(self, world_table):
         # The initial state of the grid in each episode is a random placement of cans
-        self.table = world_table
+        self.world = world_table
 
         # Robby is initially placed in a random grid square
         self.row = random.randrange(0, SIZE)
         self.col = random.randrange(0, SIZE)
 
+        # Keep track of the total reward gained per episode.
+        reward = 0
+
     # Robby has five “sensors”: Current, North, South, East, and West. At any time step, these each
     # return the “value” of the respective location, where the possible values are Empty, Can, and Wall.
-    def
+    def current(self):
+        return self.world[self.col][self.row]
 
+    def north(self):
+        return self.world[self.col][self.row - 1]
+
+    def south(self):
+        return self.world[self.col][self.row + 1]
+
+    def east(self):
+        return self.world[self.col + 1][self.row]
+
+    def west(self):
+        return self.world[self.col - 1][self.row]
 
     # Robby has five possible actions: Move-North, Move-South, Move-East, Move-West, and Pick-Up-Can.
     # Note: if Robby picks up a can, the can is then gone from the grid.
+
+    def move_north(self):
+        if self.north() == State.WALL:
+            self.reward += Reward.CRASH
+        else:
+            self.row += 1
+
+    def move_south(self):
+        if self.south() == State.WALL:
+            self.reward += Reward.CRASH
+        else:
+            self.row -= 1
+
+    def move_east(self):
+        if self.east() == State.WALL:
+            self.reward += Reward.CRASH
+        else:
+            self.col += 1
+
+    def move_west(self):
+        if self.south() == State.WALL:
+            self.reward += Reward.CRASH
+        else:
+            self.col -= 1
+
+    def pick_up_can(self):
+        if self.current() == State.CAN:
+            self.world[self.col][self.row] = State.EMPTY
+            self.reward += Reward.CAN
+        else:
+            self.reward += Reward.NO_CAN
+
+
+
+
+
+
 
     def up(self):
         if self.row == 0:
