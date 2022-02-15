@@ -17,6 +17,13 @@ from enum import IntEnum
 SIZE = 10  # Robby the Robot lives in a 10 x 10 grid, surrounded by a wall
 CHANCE = 0.5  # each grid square has a probability of 0.5 to contain a can
 
+# To do a run consisting of N episodes of M steps each, use the following parameter values:
+#   N = 5,000 ; M = 200 ; 𝜂 = 0.2; 𝛾 = 0.9
+EPISODES = 5000
+STEPS = 200
+ETA = 0.2
+GAMMA = 0.9
+
 
 # enumeration of reward values
 class Reward(IntEnum):
@@ -112,6 +119,35 @@ class Robby:
             self.reward += Reward.CAN
         else:
             self.reward += Reward.NO_CAN
+
+    # At the end of each episode, generate a new distribution of cans and place Robby in a random grid
+    # square to start the next episode. (Don’t reset the Q-matrix — you will keep updating this matrix
+    # over the N episodes. Keep track of the total reward gained per episode.
+    def episode(self):
+        for _ in range(STEPS):
+            self.time_step()
+
+    # At each time step t during an episode, your code should do the following:
+    # • Observe Robby’s current state s_t
+    # • Choose an action a_t, using -greedy action selection
+    # • Perform the action
+    # • Receive reward r_t (which is zero except in the cases specified above)
+    # • Observe Robby’s new state s_(t+1)
+    # • Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
+    def time_step(self):
+        # Observe Robby’s current state s_t
+
+        # Choose an action a_t, using -greedy action selection
+
+        # Perform the action
+
+        # Receive reward r_t (which is zero except in the cases specified above)
+
+        # Observe Robby’s new state s_(t+1)
+
+        # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
+
+        return
 
 
 if __name__ == '__main__':
