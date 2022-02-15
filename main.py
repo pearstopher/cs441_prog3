@@ -45,8 +45,7 @@ class Robby:
         self.world = self.generate_world()
 
         # Robby is initially placed in a random grid square
-        self.row = random.randrange(0, SIZE + 1)
-        self.col = random.randrange(0, SIZE + 1)
+        self.row, self.col = self.random_location()
 
         # Keep track of the total reward gained per episode.
         self.reward = 0
@@ -75,6 +74,11 @@ class Robby:
                     if random.uniform(0, 1) <= CHANCE:
                         world[i][j] = State.CAN
         return world
+
+    @staticmethod
+    def random_location():
+        # return a random location in the grid which is not a wall
+        return random.randrange(0, SIZE + 1), random.randrange(0, SIZE + 1)
 
     # Robby has five “sensors”: Current, North, South, East, and West. At any time step, these each
     # return the “value” of the respective location, where the possible values are Empty, Can, and Wall.
