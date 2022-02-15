@@ -10,7 +10,7 @@
 
 import numpy as np
 import random
-from enum import Enum
+from enum import IntEnum
 
 
 # CONSTANTS & CONFIGURATION
@@ -19,14 +19,14 @@ CHANCE = 0.5  # each grid square has a probability of 0.5 to contain a can
 
 
 # enumeration of reward values
-class Reward(Enum):
+class Reward(IntEnum):
     CAN = 10  # Robby receives a reward of 10 for each can he picks up
     CRASH = -5  # a “reward” of −5 if he crashes into a wall
     NO_CAN = -1  # and a reward of −1 if he tries to pick up a can in an empty square.
 
 
 # enumeration of world square states
-class State(Enum):
+class State(IntEnum):
     EMPTY = 0
     CAN = 1
     WALL = 2
@@ -51,11 +51,11 @@ class Robby:
         world = np.zeros((size, size))
 
         # loop and configure the grid
-        for i in range(world):
-            for j in range(world):
+        for i in range(size):
+            for j in range(size):
                 # set up the walls
-                if i == 0 or i == size or \
-                        j == 0 or j == size:
+                if i == 0 or i == size - 1 or \
+                        j == 0 or j == size - 1:
                     world[i][j] = State.WALL
                 # randomly place the cans
                 else:
