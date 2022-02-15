@@ -118,3 +118,6 @@ if __name__ == '__main__':
     print("\tRobby the Robot\n\n")
 
     robby = Robby()
+
+    print("Initial World")
+    print(robby.world)
