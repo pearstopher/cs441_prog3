@@ -51,6 +51,12 @@ class Robby:
         # Keep track of the total reward gained per episode.
         self.reward = 0
 
+        # A Q-matrix, in which the rows correspond to states and the columns correspond to actions.
+        # The Q-matrix is initialized to all zeros at the beginning of a run.
+        states = 3**5  # possible square values ** observable squares
+        actions = 5  # number of actions
+        self.q = np.zeros((actions, states))
+
     @staticmethod
     def generate_world():
         # the walls are also going to be represented by grid squares
