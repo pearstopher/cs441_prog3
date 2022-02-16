@@ -49,7 +49,6 @@ class Robby:
 
         # Keep track of the total reward gained per episode.
         self.reward = []
-        # self.reward = np.empty(1)
 
         # A Q-matrix, in which the rows correspond to states and the columns correspond to actions.
         # The Q-matrix is initialized to all zeros at the beginning of a run.
@@ -100,6 +99,13 @@ class Robby:
 
     # Robby has five possible actions: Move-North, Move-South, Move-East, Move-West, and Pick-Up-Can.
     # Note: if Robby picks up a can, the can is then gone from the grid.
+    def pick_up_can(self):
+        if self.current() == State.CAN:
+            self.world[self.col][self.row] = State.EMPTY
+            return Reward.CAN
+        else:
+            return Reward.NO_CAN
+
     def move_north(self):
         if self.north() == State.WALL:
             return Reward.CRASH
@@ -124,13 +130,6 @@ class Robby:
         else:
             self.col -= 1
 
-    def pick_up_can(self):
-        if self.current() == State.CAN:
-            self.world[self.col][self.row] = State.EMPTY
-            return Reward.CAN
-        else:
-            return Reward.NO_CAN
-
     # At the end of each episode, generate a new distribution of cans and place Robby in a random grid
     # square to start the next episode. (Don’t reset the Q-matrix — you will keep updating this matrix
     # over the N episodes. Keep track of the total reward gained per episode.
@@ -139,7 +138,6 @@ class Robby:
         for _ in range(STEPS):
             reward += self.time_step()
         self.reward.append(reward)
-        # np.append(self.reward, reward)
 
         self.world = self.generate_world()
         self.col, self.row = self.random_location()
@@ -155,19 +153,63 @@ class Robby:
     # • Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
     def time_step(self):
         # Observe Robby’s current state s_t
+        state = [5]
+        state[0] = self.current()
+        state[1] = self.north()
+        state[2] = self.south()
+        state[3] = self.east()
+        state[4] = self.west()
 
         # Choose an action a_t, using -greedy action selection
+        action_values = [5]
+        action_values[0] = self.action_value(state, 1)
+        action_values[1] = self.action_value(state, 2)
+        action_values[2] = self.action_value(state, 3)
+        action_values[3] = self.action_value(state, 4)
+        action_values[4] = self.action_value(state, 5)
+        action = max(action_values)
 
         # Perform the action
-
         # Receive reward r_t (which is zero except in the cases specified above)
+        if action == 0:
+            reward = self.pick_up_can()
+        elif action == 1:
+            reward = self.north()
+        elif action == 2:
+            reward = self.south()
+        elif action == 3:
+            reward = self.east()
+        else:
+            reward = self.west()
 
         # Observe Robby’s new state s_(t+1)
+        new_state = [5]
+        new_state[0] = self.current()
+        new_state[1] = self.north()
+        new_state[2] = self.south()
+        new_state[3] = self.east()
+        new_state[4] = self.west()
 
         # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
+        # self.q
 
-        if self.reward != -1:
-            return 1
+        return reward
+
+    # -greedy action selection
+    def action_value(self, state, action):
+        # look up the right square in the q matrix
+        if action == 0:
+            value = self.q
+        elif action == 1:
+            value = self.q
+        elif action == 2:
+            value = self.q
+        elif action == 3:
+            value = self.q
+        else:
+            value = self.q
+        # return its value so that the largest can be selected
+        return value
 
 
 if __name__ == '__main__':
