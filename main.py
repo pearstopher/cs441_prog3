@@ -49,6 +49,7 @@ class Robby:
 
         # Keep track of the total reward gained per episode.
         self.reward = []
+        # self.reward = np.empty(1)
 
         # A Q-matrix, in which the rows correspond to states and the columns correspond to actions.
         # The Q-matrix is initialized to all zeros at the beginning of a run.
@@ -138,6 +139,7 @@ class Robby:
         for _ in range(STEPS):
             reward += self.time_step()
         self.reward.append(reward)
+        # np.append(self.reward, reward)
 
         self.world = self.generate_world()
         self.col, self.row = self.random_location()
@@ -180,4 +182,7 @@ if __name__ == '__main__':
 
     for e in range(EPISODES):
         r = robby.episode()
-        print("Episode", e, "reward:", r)
+        # print("Episode", e, "reward:", r)
+
+    for rw in range(len(robby.reward)):
+        print("Episode", rw, "reward:", robby.reward[rw])
