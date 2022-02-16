@@ -207,11 +207,9 @@ class Robby:
     def best_action(self, state):
         # Choose an action a_t, using -greedy action selection
         action_values = np.zeros(5)
-        action_values[0] = self.action_value(state, 0)
-        action_values[1] = self.action_value(state, 1)
-        action_values[2] = self.action_value(state, 2)
-        action_values[3] = self.action_value(state, 3)
-        action_values[4] = self.action_value(state, 4)
+        for i in range(len(action_values)):
+            action_values[i] = self.get_q(state, i)
+
         # action_value = max(action_values)
         # action = action_values.index(action_value)
         action = np.argmax(action_values)
@@ -231,14 +229,6 @@ class Robby:
         else:
             action = self.best_action(state)
         return action
-
-    # -greedy action selection
-    def action_value(self, state, action):
-        # look up the right square in the q matrix
-        value = self.q[int(state[0]), int(state[1]), int(state[2]), int(state[3]), int(state[4]), int(action)]
-
-        # return its value so that the largest can be selected
-        return value
 
     def get_q(self, state, action):
         # why can it not recognize that these are ints? :'(
@@ -280,6 +270,7 @@ def main():
 
     plt.plot(x_values, y_values)
     plt.xlim([100, EPISODES])
+    plt.ylim([-50, 550])  # average of 500 max reward, no real minimum
     plt.show()
 
     # After training is completed, run N test episodes using your trained Q-matrix, but with  = 0.1 for
