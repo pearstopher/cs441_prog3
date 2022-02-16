@@ -161,6 +161,7 @@ class Robby:
         # Observe Robby’s current state s_t
         state = self.observe_state()
 
+        # Choose an action a_t, using -greedy action selection
         action = self.epsilon_greedy_action(state)
 
         # Perform the action
