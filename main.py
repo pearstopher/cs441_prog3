@@ -45,10 +45,10 @@ class Robby:
         self.world = self.generate_world()
 
         # Robby is initially placed in a random grid square
-        self.row, self.col = self.random_location()
+        self.col, self.row = self.random_location()
 
         # Keep track of the total reward gained per episode.
-        self.reward = 0
+        self.reward = []
 
         # A Q-matrix, in which the rows correspond to states and the columns correspond to actions.
         # The Q-matrix is initialized to all zeros at the beginning of a run.
@@ -101,41 +101,48 @@ class Robby:
     # Note: if Robby picks up a can, the can is then gone from the grid.
     def move_north(self):
         if self.north() == State.WALL:
-            self.reward += Reward.CRASH
+            return Reward.CRASH
         else:
             self.row += 1
 
     def move_south(self):
         if self.south() == State.WALL:
-            self.reward += Reward.CRASH
+            return Reward.CRASH
         else:
             self.row -= 1
 
     def move_east(self):
         if self.east() == State.WALL:
-            self.reward += Reward.CRASH
+            return Reward.CRASH
         else:
             self.col += 1
 
     def move_west(self):
         if self.south() == State.WALL:
-            self.reward += Reward.CRASH
+            return Reward.CRASH
         else:
             self.col -= 1
 
     def pick_up_can(self):
         if self.current() == State.CAN:
             self.world[self.col][self.row] = State.EMPTY
-            self.reward += Reward.CAN
+            return Reward.CAN
         else:
-            self.reward += Reward.NO_CAN
+            return Reward.NO_CAN
 
     # At the end of each episode, generate a new distribution of cans and place Robby in a random grid
     # square to start the next episode. (Don’t reset the Q-matrix — you will keep updating this matrix
     # over the N episodes. Keep track of the total reward gained per episode.
     def episode(self):
+        reward = 0
         for _ in range(STEPS):
-            self.time_step()
+            reward += self.time_step()
+        self.reward.append(reward)
+
+        self.world = self.generate_world()
+        self.col, self.row = self.random_location()
+
+        return reward
 
     # At each time step t during an episode, your code should do the following:
     # • Observe Robby’s current state s_t
@@ -157,7 +164,8 @@ class Robby:
 
         # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
 
-        return
+        if self.reward != -1:
+            return 1
 
 
 if __name__ == '__main__':
@@ -169,3 +177,7 @@ if __name__ == '__main__':
     print(robby.world)
     print("Robby's location:")
     print(robby.col, robby.row)
+
+    for e in range(EPISODES):
+        r = robby.episode()
+        print("Episode", e, "reward:", r)
