@@ -182,7 +182,6 @@ class Robby:
         new_state = self.observe_state()
 
         # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
-        # n = 0.9  # this is for discounting # no y is for discounting
 
         q = self.get_q(state, action)
         max_a_q = self.get_q(new_state, self.best_action(new_state))  # need to calculate best action for these
