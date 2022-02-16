@@ -11,6 +11,7 @@
 import numpy as np
 import random
 from enum import IntEnum
+from matplotlib import pyplot as plt
 
 
 # CONSTANTS & CONFIGURATION
@@ -247,7 +248,7 @@ class Robby:
         self.q[int(state[0]), int(state[1]), int(state[2]), int(state[3]), int(state[4]), int(action)] = value
 
 
-if __name__ == '__main__':
+def main():
     print("\tRobby the Robot\n\n")
 
     robby = Robby()
@@ -262,9 +263,24 @@ if __name__ == '__main__':
     # which Robby is learning to improve his cumulative reward.
     for e in range(EPISODES):
         r = robby.episode()
-        print("Episode", e, "reward:", r)
+        print("Episode", e, "reward:", r)  # r = robby.episode()
 
-    # todo: implement graphs of data
+    x_values = []
+    y_values = []
+
+    for i in range(int(len(robby.reward) / 100)):
+        x_value = i * 100
+        y_value = 0
+
+        for j in range(100):
+            y_value += robby.reward[i*100 + j]
+        y_value /= 100
+        x_values.append(x_value)
+        y_values.append(y_value)
+
+    plt.plot(x_values, y_values)
+    plt.xlim([100, EPISODES])
+    plt.show()
 
     # After training is completed, run N test episodes using your trained Q-matrix, but with  = 0.1 for
     # all N episodes. Again, regenerate a grid of randomly placed cans at the beginning of each episode
@@ -279,3 +295,7 @@ if __name__ == '__main__':
     #    print("Episode", rw, "reward:", robby.reward[rw])
 
     # print("Lets look at the q matrix:\n", robby.q)
+
+
+if __name__ == '__main__':
+    main()
