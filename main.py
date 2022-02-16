@@ -141,8 +141,8 @@ class Robby:
     # over the N episodes. Keep track of the total reward gained per episode.
     def episode(self):
         reward = 0
-        for _ in range(STEPS):
-            reward += self.time_step()
+        for i in range(STEPS):
+            reward += self.time_step(i)  # pass in episode number to calculate epsilon later
         self.reward.append(reward)
 
         self.world = self.generate_world()
@@ -157,12 +157,12 @@ class Robby:
     # • Receive reward r_t (which is zero except in the cases specified above)
     # • Observe Robby’s new state s_(t+1)
     # • Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
-    def time_step(self):
+    def time_step(self, episode):
         # Observe Robby’s current state s_t
         state = self.observe_state()
 
         # Choose an action a_t, using -greedy action selection
-        action = self.epsilon_greedy_action(state)
+        action = self.epsilon_greedy_action(state, episode)
 
         # Perform the action
         # Receive reward r_t (which is zero except in the cases specified above)
@@ -216,9 +216,16 @@ class Robby:
         action = np.argmax(action_values)
         return action
 
-    def epsilon_greedy_action(self, state):
-        epsilon = 0.5
-        if random.uniform(0, 1) < epsilon:
+    def epsilon_greedy_action(self, state, episode):
+        # For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
+        # decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
+        # (I think 'epoch' is intended to mean 'episode' here)
+        epsilon = 0.1
+        while epsilon > 0 and episode > 0:
+            epsilon -= 0.0002  # epsilon will hit zero at 50*50 = 2500 = halfway
+            episode -= 50
+
+        if random.uniform(0, 1) <= epsilon:
             action = random.randrange(0, 5)
         else:
             action = self.best_action(state)
@@ -245,17 +252,30 @@ if __name__ == '__main__':
 
     robby = Robby()
 
-    print("Initial World:")
-    print(robby.world)
-    print("Robby's location:")
-    print(robby.col, robby.row)
+    # print("Initial World:")
+    # print(robby.world)
+    # print("Robby's location:")
+    # print(robby.col, robby.row)
 
+    # Run the N episodes of learning, and plot the total sum of rewards per episode (plotting a point
+    # every 100 episodes). This plot—let’s call it the Training Reward plot—indicates the extent to
+    # which Robby is learning to improve his cumulative reward.
     for e in range(EPISODES):
         r = robby.episode()
         print("Episode", e, "reward:", r)
 
+    # todo: implement graphs of data
+
+    # After training is completed, run N test episodes using your trained Q-matrix, but with  = 0.1 for
+    # all N episodes. Again, regenerate a grid of randomly placed cans at the beginning of each episode
+    # and also place Robby in a random grid location. Calculate the average over sum-of-rewards-per-
+    # episode, and the standard deviation. For simplicity in this writeup, let’s call these values Test-
+    # Average and Test-Standard-Deviation. These values indicate how a trained agent performs this
+    # task in new environments.
+
+    #
     # this prints them all at the end. currently implementing live printing for sense of progress
     # for rw in range(len(robby.reward)):
     #    print("Episode", rw, "reward:", robby.reward[rw])
 
-    print("OK LETS SEE\n", robby.q)
+    # print("Lets look at the q matrix:\n", robby.q)
