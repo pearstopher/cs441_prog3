@@ -166,16 +166,7 @@ class Robby:
         state[3] = self.east()
         state[4] = self.west()
 
-        # Choose an action a_t, using -greedy action selection
-        action_values = np.zeros(5)
-        action_values[0] = self.action_value(state, 0)
-        action_values[1] = self.action_value(state, 1)
-        action_values[2] = self.action_value(state, 2)
-        action_values[3] = self.action_value(state, 3)
-        action_values[4] = self.action_value(state, 4)
-        # action_value = max(action_values)
-        # action = action_values.index(action_value)
-        action = np.argmax(action_values)
+        action = self.epsilon_greedy_action(state)
 
         # Perform the action
         # Receive reward r_t (which is zero except in the cases specified above)
@@ -201,18 +192,37 @@ class Robby:
         new_state[4] = self.west()
 
         # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
-        n = 1  # this will be used for discounting
+        # n = 0.9  # this is for discounting # no y is for discounting
 
-        # why can it not recognize that these are ints? :'(
-        q = self.q[int(state[0]), int(state[1]), int(state[2]), int(state[3]), int(state[4]), int(action)]
-        y_max_a_q = self.q[int(new_state[0]), int(new_state[1]), int(new_state[2]), int(new_state[3]),
-                           int(new_state[4]), int(action)]  # need to calculate max next action too?
+        q = self.get_q(state, action)
+        max_a_q = self.get_q(new_state, self.best_action(new_state))  # need to calculate best action for these
 
-        new_q = q + n * (reward + y_max_a_q - q)
+        new_q = q + ETA * (reward + (GAMMA * max_a_q) - q)
 
-        self.q[int(state[0]), int(state[1]), int(state[2]), int(state[3]), int(state[4]), int(action)] = new_q
+        self.set_q(state, action, new_q)
 
         return reward
+
+    def best_action(self, state):
+        # Choose an action a_t, using -greedy action selection
+        action_values = np.zeros(5)
+        action_values[0] = self.action_value(state, 0)
+        action_values[1] = self.action_value(state, 1)
+        action_values[2] = self.action_value(state, 2)
+        action_values[3] = self.action_value(state, 3)
+        action_values[4] = self.action_value(state, 4)
+        # action_value = max(action_values)
+        # action = action_values.index(action_value)
+        action = np.argmax(action_values)
+        return action
+
+    def epsilon_greedy_action(self, state):
+        epsilon = 0.5
+        if random.uniform(0, 1) < epsilon:
+            action = random.randrange(0, 5)
+        else:
+            action = self.best_action(state)
+        return action
 
     # -greedy action selection
     def action_value(self, state, action):
@@ -221,6 +231,13 @@ class Robby:
 
         # return its value so that the largest can be selected
         return value
+
+    def get_q(self, state, action):
+        # why can it not recognize that these are ints? :'(
+        return self.q[int(state[0]), int(state[1]), int(state[2]), int(state[3]), int(state[4]), int(action)]
+
+    def set_q(self, state, action, value):
+        self.q[int(state[0]), int(state[1]), int(state[2]), int(state[3]), int(state[4]), int(action)] = value
 
 
 if __name__ == '__main__':
