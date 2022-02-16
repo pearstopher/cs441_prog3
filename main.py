@@ -113,14 +113,14 @@ class Robby:
         if self.north() == State.WALL:
             return Reward.CRASH
         else:
-            self.row += 1
+            self.row -= 1
             return Reward.MOVE
 
     def move_south(self):
         if self.south() == State.WALL:
             return Reward.CRASH
         else:
-            self.row -= 1
+            self.row += 1
             return Reward.MOVE
 
     def move_east(self):
@@ -170,13 +170,13 @@ class Robby:
         if action == 0:
             reward = self.pick_up_can()
         elif action == 1:
-            reward = self.north()
+            reward = self.move_north()
         elif action == 2:
-            reward = self.south()
+            reward = self.move_south()
         elif action == 3:
-            reward = self.east()
+            reward = self.move_east()
         else:
-            reward = self.west()
+            reward = self.move_west()
 
         # Observe Robby’s new state s_(t+1)
         new_state = self.observe_state()
