@@ -159,12 +159,7 @@ class Robby:
     # • Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
     def time_step(self):
         # Observe Robby’s current state s_t
-        state = np.zeros(5)
-        state[0] = self.current()
-        state[1] = self.north()
-        state[2] = self.south()
-        state[3] = self.east()
-        state[4] = self.west()
+        state = self.observe_state()
 
         action = self.epsilon_greedy_action(state)
 
@@ -182,14 +177,7 @@ class Robby:
             reward = self.west()
 
         # Observe Robby’s new state s_(t+1)
-        # new_state = list(range(5))
-        # new_state = [0, 0, 0, 0, 0]
-        new_state = np.zeros(5)
-        new_state[0] = self.current()
-        new_state[1] = self.north()
-        new_state[2] = self.south()
-        new_state[3] = self.east()
-        new_state[4] = self.west()
+        new_state = self.observe_state()
 
         # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
         # n = 0.9  # this is for discounting # no y is for discounting
@@ -202,6 +190,17 @@ class Robby:
         self.set_q(state, action, new_q)
 
         return reward
+
+    def observe_state(self):
+        # state = list(range(5))
+        # state = [0, 0, 0, 0, 0]
+        state = np.zeros(5)
+        state[0] = self.current()
+        state[1] = self.north()
+        state[2] = self.south()
+        state[3] = self.east()
+        state[4] = self.west()
+        return state
 
     def best_action(self, state):
         # Choose an action a_t, using -greedy action selection
