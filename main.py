@@ -85,6 +85,9 @@ class Robby:
         # return a random location in the grid which is not a wall
         return random.randrange(SIZE) + 1, random.randrange(SIZE) + 1
 
+    def reset_reward(self):
+        self.reward = []  # reset the reward between training and testing
+
     # Robby has five “sensors”: Current, North, South, East, and West. At any time step, these each
     # return the “value” of the respective location, where the possible values are Empty, Can, and Wall.
     def current(self):
@@ -258,7 +261,7 @@ def main():
     print("\tTRAINING\n\n")
     for e in range(EPISODES):
         r = robby.episode(e)
-        print("Episode", e, "reward:", r)  # r = robby.episode()
+        print("(Training) Episode", e, "reward:", r)  # r = robby.episode()
 
     x_values = []
     y_values = []
@@ -285,9 +288,10 @@ def main():
     # Average and Test-Standard-Deviation. These values indicate how a trained agent performs this
     # task in new environments.
     print("\tTESTING\n\n")
+    robby.reset_reward()
     for e in range(EPISODES):
         r = robby.episode(0, False)  # if I don't pass in an episode number, epsilon will never decay
-        print("Episode", e, "reward:", r)  # r = robby.episode()
+        print("(Testing) Episode", e, "reward:", r)  # r = robby.episode()
 
     x_values = []
     y_values = []
