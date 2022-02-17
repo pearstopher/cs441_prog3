@@ -311,12 +311,15 @@ def main():
     plt.ylim([-50, 550])  # average of 500 max reward, no real minimum
     plt.show()
 
-    #
-    # this prints them all at the end. currently implementing live printing for sense of progress
-    # for rw in range(len(robby.reward)):
-    #    print("Episode", rw, "reward:", robby.reward[rw])
+    #  Calculate the average over sum-of-rewards-per-episode, and the standard deviation.
+    #  For simplicity in this writeup, let’s call these values TestAverage and Test-Standard-Deviation.
+    #  These values indicate how a trained agent performs this task in new environments.
 
-    # print("Lets look at the q matrix:\n", robby.q)
+    average = sum(y_values) / len(y_values)
+    stddev = np.std(y_values)
+    print("\n\tTESTING RESULTS:")
+    print("Average:", average)
+    print("Standard Deviation:", stddev)
 
 
 if __name__ == '__main__':
