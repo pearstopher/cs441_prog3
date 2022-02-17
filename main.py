@@ -142,10 +142,10 @@ class Robby:
     # At the end of each episode, generate a new distribution of cans and place Robby in a random grid
     # square to start the next episode. (Don’t reset the Q-matrix — you will keep updating this matrix
     # over the N episodes. Keep track of the total reward gained per episode.
-    def episode(self, episode_num):
+    def episode(self, episode_num, update_q=True):
         reward = 0
         for _ in range(STEPS):
-            reward += self.time_step(episode_num)  # pass in episode number to calculate epsilon later
+            reward += self.time_step(episode_num, update_q)  # pass in episode number to calculate epsilon later
         self.reward.append(reward)
 
         self.world = self.generate_world()
@@ -160,13 +160,13 @@ class Robby:
     # • Receive reward r_t (which is zero except in the cases specified above)
     # • Observe Robby’s new state s_(t+1)
     # • Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
-    def time_step(self, episode):
+    def time_step(self, episode_num, update_q):
 
         # Observe Robby’s current state s_t
         state = self.observe_state()
 
         # Choose an action a_t, using -greedy action selection
-        action = self.epsilon_greedy_action(state, episode)
+        action = self.epsilon_greedy_action(state, episode_num)
 
         # Perform the action
         # Receive reward r_t (which is zero except in the cases specified above)
@@ -185,13 +185,14 @@ class Robby:
         new_state = self.observe_state()
 
         # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
-        q = self.get_q(state, action)
+        if update_q:
+            q = self.get_q(state, action)
 
-        max_a_q = self.get_q(new_state, self.best_action(new_state))  # need to calculate best action for these
+            max_a_q = self.get_q(new_state, self.best_action(new_state))
 
-        new_q = q + ETA * (reward + (GAMMA * max_a_q) - q)
+            new_q = q + ETA * (reward + (GAMMA * max_a_q) - q)
 
-        self.set_q(state, action, new_q)
+            self.set_q(state, action, new_q)
 
         return reward
 
@@ -207,22 +208,20 @@ class Robby:
         return state
 
     def best_action(self, state):
-        # Choose an action a_t, using -greedy action selection
+        # Choose an action a_t, using greedy action selection
         action_values = np.zeros(5)
         for i in range(len(action_values)):
             action_values[i] = self.get_q(state, i)
 
-        # action_value = max(action_values)
-        # action = action_values.index(action_value)
-        # action = np.argmax(action_values)
-        # choose a random maximum from all the random maximums
-        # this prevents always going the same direction initially when everything
-        # is is initialized to zero
+        # action = np.argmax(action_values)  # this always returns the first occurrence of the max
+        # Instead I would like to return a randomly selected maximum value.
+        # This allows better exploration initially (when all squares are a max of zero).
         actions = np.argwhere(action_values == np.amax(action_values)).flatten().tolist()
         index = random.randrange(0, len(actions))
         return actions[index]
 
     def epsilon_greedy_action(self, state, episode):
+        # Choose an action a_t, using -greedy action selection
         # For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
         # decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
         # (I think 'epoch' is intended to mean 'episode' here)
@@ -236,7 +235,7 @@ class Robby:
         return action
 
     def get_q(self, state, action):
-        # why can it not recognize that these are ints? :'(
+        # why can it not recognize that these are ints? :'( I cry
         return self.q[int(state[0]), int(state[1]), int(state[2]), int(state[3]), int(state[4]), int(action)]
 
     def set_q(self, state, action, value):
@@ -256,6 +255,7 @@ def main():
     # Run the N episodes of learning, and plot the total sum of rewards per episode (plotting a point
     # every 100 episodes). This plot—let’s call it the Training Reward plot—indicates the extent to
     # which Robby is learning to improve his cumulative reward.
+    print("\tTRAINING\n\n")
     for e in range(EPISODES):
         r = robby.episode(e)
         print("Episode", e, "reward:", r)  # r = robby.episode()
@@ -284,6 +284,28 @@ def main():
     # episode, and the standard deviation. For simplicity in this writeup, let’s call these values Test-
     # Average and Test-Standard-Deviation. These values indicate how a trained agent performs this
     # task in new environments.
+    print("\tTESTING\n\n")
+    for e in range(EPISODES):
+        r = robby.episode(0, False)  # if I don't pass in an episode number, epsilon will never decay
+        print("Episode", e, "reward:", r)  # r = robby.episode()
+
+    x_values = []
+    y_values = []
+
+    for i in range(int(len(robby.reward) / 100)):
+        x_value = i * 100
+        y_value = 0
+
+        for j in range(100):
+            y_value += robby.reward[i*100 + j]
+        y_value /= 100
+        x_values.append(x_value)
+        y_values.append(y_value)
+
+    plt.plot(x_values, y_values)
+    plt.xlim([100, EPISODES])
+    plt.ylim([-50, 550])  # average of 500 max reward, no real minimum
+    plt.show()
 
     #
     # this prints them all at the end. currently implementing live printing for sense of progress
