@@ -159,6 +159,7 @@ class Robby:
     # • Observe Robby’s new state s_(t+1)
     # • Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
     def time_step(self, episode):
+
         # Observe Robby’s current state s_t
         state = self.observe_state()
 
@@ -182,8 +183,8 @@ class Robby:
         new_state = self.observe_state()
 
         # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
-
         q = self.get_q(state, action)
+
         max_a_q = self.get_q(new_state, self.best_action(new_state))  # need to calculate best action for these
 
         new_q = q + ETA * (reward + (GAMMA * max_a_q) - q)
@@ -211,8 +212,13 @@ class Robby:
 
         # action_value = max(action_values)
         # action = action_values.index(action_value)
-        action = np.argmax(action_values)
-        return action
+        # action = np.argmax(action_values)
+        # choose a random maximum from all the random maximums
+        # this prevents always going the same direction initially when everything
+        # is is initialized to zero
+        actions = np.argwhere(action_values == np.amax(action_values)).flatten().tolist()
+        index = random.randrange(0, len(actions))
+        return actions[index]
 
     def epsilon_greedy_action(self, state, episode):
         # For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
@@ -220,7 +226,9 @@ class Robby:
         # (I think 'epoch' is intended to mean 'episode' here)
         epsilon = 0.1
         while epsilon > 0 and episode > 0:
-            epsilon -= 0.0002  # epsilon will hit zero at 50*50 = 2500 = halfway
+            # epsilon -= 0.001  # epsilon will hit zero at end
+            epsilon -= 0.002  # epsilon will hit zero at 50*50 = 2500 = halfway
+            # epsilon -= 0.004  # epsilon will hit zero 25% of the way in
             episode -= 50
 
         if random.uniform(0, 1) <= epsilon:
