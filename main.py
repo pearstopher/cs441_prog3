@@ -131,7 +131,7 @@ class Robby:
             return Reward.MOVE
 
     def move_west(self):
-        if self.south() == State.WALL:
+        if self.west() == State.WALL:
             return Reward.CRASH
         else:
             self.col -= 1
@@ -140,10 +140,10 @@ class Robby:
     # At the end of each episode, generate a new distribution of cans and place Robby in a random grid
     # square to start the next episode. (Don’t reset the Q-matrix — you will keep updating this matrix
     # over the N episodes. Keep track of the total reward gained per episode.
-    def episode(self):
+    def episode(self, episode_num):
         reward = 0
-        for i in range(STEPS):
-            reward += self.time_step(i)  # pass in episode number to calculate epsilon later
+        for _ in range(STEPS):
+            reward += self.time_step(episode_num)  # pass in episode number to calculate epsilon later
         self.reward.append(reward)
 
         self.world = self.generate_world()
@@ -225,11 +225,10 @@ class Robby:
         # decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
         # (I think 'epoch' is intended to mean 'episode' here)
         epsilon = 0.1
-        while epsilon > 0 and episode > 0:
-            # epsilon -= 0.001  # epsilon will hit zero at end
-            epsilon -= 0.002  # epsilon will hit zero at 50*50 = 2500 = halfway
-            # epsilon -= 0.004  # epsilon will hit zero 25% of the way in
-            episode -= 50
+        # subtract 0.001  # epsilon will hit zero at end
+        # subtract 0.002  # epsilon will hit zero at 50*50 = 2500 = halfway
+        # subtract 0.004  # epsilon will hit zero 25% of the way in
+        epsilon -= int(episode / 50) * 0.01
 
         if random.uniform(0, 1) <= epsilon:
             action = random.randrange(0, 5)
@@ -259,7 +258,7 @@ def main():
     # every 100 episodes). This plot—let’s call it the Training Reward plot—indicates the extent to
     # which Robby is learning to improve his cumulative reward.
     for e in range(EPISODES):
-        r = robby.episode()
+        r = robby.episode(e)
         print("Episode", e, "reward:", r)  # r = robby.episode()
 
     x_values = []
