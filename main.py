@@ -25,6 +25,12 @@ STEPS = 200
 ETA = 0.2
 GAMMA = 0.9
 
+# For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
+# decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
+EPSILON = 0.1
+EPSILON_STEP = 0.002  # 0.002/50 cools down at 2500 (halfway mark)
+EPSILON_INTERVAL = 50
+
 
 # enumeration of reward values
 class Reward(IntEnum):
@@ -224,13 +230,10 @@ class Robby:
         # For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
         # decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
         # (I think 'epoch' is intended to mean 'episode' here)
-        epsilon = 0.1
-        # subtract 0.001  # epsilon will hit zero at end
-        # subtract 0.002  # epsilon will hit zero at 50*50 = 2500 = halfway
-        # subtract 0.004  # epsilon will hit zero 25% of the way in
-        epsilon -= int(episode / 50) * 0.01
+        epsilon = EPSILON
+        epsilon -= int(episode / EPSILON_INTERVAL) * EPSILON_STEP
 
-        if random.uniform(0, 1) <= epsilon:
+        if random.uniform(0, 1) < epsilon:
             action = random.randrange(0, 5)
         else:
             action = self.best_action(state)
