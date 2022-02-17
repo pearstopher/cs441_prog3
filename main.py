@@ -2,11 +2,7 @@
 # Programming Assignment 3
 #   (Robby the Robot)
 # Christopher Juncker
-#
-#
-#
-#
-#
+
 
 import numpy as np
 import random
