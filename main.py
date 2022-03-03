@@ -8,6 +8,7 @@ import numpy as np
 import random
 from enum import IntEnum
 from matplotlib import pyplot as plt
+# from math import exp
 
 
 # CONSTANTS & CONFIGURATION
@@ -18,14 +19,17 @@ CHANCE = 0.5  # each grid square has a probability of 0.5 to contain a can
 #   N = 5,000 ; M = 200 ; 𝜂 = 0.2; 𝛾 = 0.9
 EPISODES = 5000
 STEPS = 200
-ETA = 0.2
+ETA = 0.1
 GAMMA = 0.9
 
 # For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
 # decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
+# EPSILON = 0.1
+# EPSILON_STEP = 0.002  # 0.1/0.002/50 cools down at 2500 (halfway mark)
 EPSILON = 0.1
-EPSILON_STEP = 0.002  # 0.002/50 cools down at 2500 (halfway mark)
+EPSILON_STEP = 0.002
 EPSILON_INTERVAL = 50
+EPSILON_TEST = 0.1  # need to preserve correct testing value when changing training value
 
 
 # enumeration of reward values
@@ -145,10 +149,11 @@ class Robby:
     # At the end of each episode, generate a new distribution of cans and place Robby in a random grid
     # square to start the next episode. (Don’t reset the Q-matrix — you will keep updating this matrix
     # over the N episodes. Keep track of the total reward gained per episode.
-    def episode(self, episode_num, update_q=True):
+    def episode(self, episode_num, testing=False):
         reward = 0
+
         for _ in range(STEPS):
-            reward += self.time_step(episode_num, update_q)  # pass in episode number to calculate epsilon later
+            reward += self.time_step(episode_num, testing)  # pass in episode number to calculate epsilon later
         self.reward.append(reward)
 
         self.world = self.generate_world()
@@ -163,13 +168,13 @@ class Robby:
     # • Receive reward r_t (which is zero except in the cases specified above)
     # • Observe Robby’s new state s_(t+1)
     # • Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
-    def time_step(self, episode_num, update_q):
+    def time_step(self, episode_num, testing=False):
 
         # Observe Robby’s current state s_t
         state = self.observe_state()
 
         # Choose an action a_t, using -greedy action selection
-        action = self.epsilon_greedy_action(state, episode_num)
+        action = self.epsilon_greedy_action(state, episode_num, testing)
 
         # Perform the action
         # Receive reward r_t (which is zero except in the cases specified above)
@@ -188,12 +193,22 @@ class Robby:
         new_state = self.observe_state()
 
         # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
-        if update_q:
+        if not testing:
             q = self.get_q(state, action)
 
             max_a_q = self.get_q(new_state, self.best_action(new_state))
 
+            # I made my own addition here: decaying the learning rate
+            # new_q = q + self.decay(ETA, episode_num) * (reward + (GAMMA * max_a_q) - q)
             new_q = q + ETA * (reward + (GAMMA * max_a_q) - q)
+
+            # if reward < 0 and new_q > q:
+            #     print("bad1")
+            # elif reward > 0 and new_q < q:
+            #     print("bad2")
+            # else:
+            # if not (reward < 0 and new_q > q) and not (reward > 0 and new_q < q):
+            #    self.set_q(state, action, new_q)
 
             self.set_q(state, action, new_q)
 
@@ -211,28 +226,42 @@ class Robby:
         return state
 
     def best_action(self, state):
+        # special case for when Robby cannot see any cans
+        # all_empty = True
+        # for s in state:
+        #     if s == State.CAN or s == State.WALL:
+        #         all_empty = False
+        # if all_empty:
+        #     action = random.randrange(1, 5)  # go in a random direction
+        #     return action
+
         # Choose an action a_t, using greedy action selection
         action_values = np.zeros(5)
         for i in range(len(action_values)):
             action_values[i] = self.get_q(state, i)
 
-        # action = np.argmax(action_values)  # this always returns the first occurrence of the max
+        action = np.argmax(action_values)  # this always returns the first occurrence of the max
+        return action
         # Instead I would like to return a randomly selected maximum value.
         # This allows better exploration initially (when all squares are a max of zero).
-        actions = np.argwhere(action_values == np.amax(action_values)).flatten().tolist()
-        index = random.randrange(0, len(actions))
-        return actions[index]
+        # actions = np.argwhere(action_values == np.amax(action_values)).flatten().tolist()
+        # index = random.randrange(0, len(actions))
+        # return actions[index]
 
-    def epsilon_greedy_action(self, state, episode):
+    def epsilon_greedy_action(self, state, episode, testing):
         # Choose an action a_t, using -greedy action selection
         # For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
         # decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
         # (I think 'epoch' is intended to mean 'episode' here)
-        epsilon = EPSILON
-        epsilon -= int(episode / EPSILON_INTERVAL) * EPSILON_STEP
+        if testing:
+            epsilon = EPSILON_TEST  # this is always 0.1 per assignment instructions
+        else:
+            epsilon = EPSILON  # I am experimenting with this one during training a little
+            epsilon -= int(episode / EPSILON_INTERVAL) * EPSILON_STEP
 
         if random.uniform(0, 1) < epsilon:
             action = random.randrange(0, 5)
+
         else:
             action = self.best_action(state)
         return action
@@ -243,6 +272,19 @@ class Robby:
 
     def set_q(self, state, action, value):
         self.q[int(state[0]), int(state[1]), int(state[2]), int(state[3]), int(state[4]), int(action)] = value
+
+    # After doing some research on why I was getting unpredictable results,
+    #   (that is to say, I was getting good results, just not consistently,)
+    #   I discovered that it is common to decay your learning rate and that this
+    #   practice an help with convergence. My tests so far have confirmed that
+    #   this is indeed the case!
+    #
+    # Right now the decay is linear over the course of the total number of episodes.
+    # I may experiment with different decay functions to see if I can do even better!
+    @staticmethod
+    def decay(eta, episode_num):
+        # return eta * exp(- (episode_num/(EPISODES/4)))
+        return eta * (EPISODES - episode_num)/EPISODES
 
 
 def main():
@@ -290,7 +332,7 @@ def main():
     print("\tTESTING\n\n")
     robby.reset_reward()
     for e in range(EPISODES):
-        r = robby.episode(0, False)  # if I don't pass in an episode number, epsilon will never decay
+        r = robby.episode(0, True)  # if I don't pass in an episode number, epsilon will never decay
         print("(Testing) Episode", e, "reward:", r)  # r = robby.episode()
 
     x_values = []
