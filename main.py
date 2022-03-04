@@ -11,18 +11,18 @@ from matplotlib import pyplot as plt
 
 
 # CONSTANTS & CONFIGURATION
-SIZE = 10  # Robby the Robot lives in a 10 x 10 grid, surrounded by a wall
-CHANCE = 0.5  # each grid square has a probability of 0.5 to contain a can
+SIZE = 10  # "Robby the Robot lives in a 10 x 10 grid, surrounded by a wall
+CHANCE = 0.5  # "each grid square has a probability of 0.5 to contain a can
 
-# To do a run consisting of N episodes of M steps each, use the following parameter values:
-#   N = 5,000 ; M = 200 ; 𝜂 = 0.2; 𝛾 = 0.9
+# "To do a run consisting of N episodes of M steps each, use the following parameter values:
+# "  N = 5,000 ; M = 200 ; 𝜂 = 0.2; 𝛾 = 0.9
 EPISODES = 5000
 STEPS = 200
 ETA = 0.2  # For Part 2: (0.1, 0.4, 0.7, 1.0)
 GAMMA = 0.9
 
-# For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
-# decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
+# "For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
+# "decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
 EPSILON = 0.1
 EPSILON_STEP = 0.002  # 0.1/0.002/50 cools down at 2500 (halfway mark)
 EPSILON_INTERVAL = 50
@@ -31,9 +31,9 @@ EPSILON_TEST = 0.1  # need to preserve correct testing value if changing trainin
 
 # enumeration of reward values
 class Reward(IntEnum):
-    CAN = 10  # Robby receives a reward of 10 for each can he picks up
-    CRASH = -5  # a “reward” of −5 if he crashes into a wall
-    NO_CAN = -1  # and a reward of −1 if he tries to pick up a can in an empty square.
+    CAN = 10  # "Robby receives a reward of 10 for each can he picks up
+    CRASH = -5  # "a “reward” of −5 if he crashes into a wall
+    NO_CAN = -1  # "and a reward of −1 if he tries to pick up a can in an empty square.
     MOVE = 0  # (there is no penalty for moving to another square)
 
 
@@ -46,20 +46,19 @@ class State(IntEnum):
 
 class Robby:
     def __init__(self):
-        # The initial state of the grid in each episode is a random placement of cans
+        # "The initial state of the grid in each episode is a random placement of cans
         self.world = self.generate_world()
 
-        # Robby is initially placed in a random grid square
+        # "Robby is initially placed in a random grid square
         self.col, self.row = self.random_location()
 
-        # Keep track of the total reward gained per episode.
+        # "Keep track of the total reward gained per episode.
         self.reward = []
 
-        # A Q-matrix, in which the rows correspond to states and the columns correspond to actions.
-        # The Q-matrix is initialized to all zeros at the beginning of a run.
-        # states = 3**5  # possible square values ** observable squares
-        # actions = 5  # number of actions
-        # self.q = np.zeros((actions, states))
+        # "A Q-matrix, in which the rows correspond to states and the columns correspond to actions.
+        # "The Q-matrix is initialized to all zeros at the beginning of a run.
+        # Rows/states: (3, 3, 3, 3, 3)
+        # Columns/actions: (5)
         self.q = np.zeros((3, 3, 3, 3, 3, 5))
 
     @staticmethod
@@ -89,8 +88,8 @@ class Robby:
     def reset_reward(self):
         self.reward = []  # reset the reward between training and testing
 
-    # Robby has five “sensors”: Current, North, South, East, and West. At any time step, these each
-    # return the “value” of the respective location, where the possible values are Empty, Can, and Wall.
+    # "Robby has five “sensors”: Current, North, South, East, and West. At any time step, these each
+    # "return the “value” of the respective location, where the possible values are Empty, Can, and Wall.
     def current(self):
         return int(self.world[self.col][self.row])
 
@@ -106,8 +105,8 @@ class Robby:
     def west(self):
         return int(self.world[self.col - 1][self.row])
 
-    # Robby has five possible actions: Move-North, Move-South, Move-East, Move-West, and Pick-Up-Can.
-    # Note: if Robby picks up a can, the can is then gone from the grid.
+    # "Robby has five possible actions: Move-North, Move-South, Move-East, Move-West, and Pick-Up-Can.
+    # "Note: if Robby picks up a can, the can is then gone from the grid.
     def pick_up_can(self):
         if self.current() == State.CAN:
             self.world[self.col][self.row] = State.EMPTY
@@ -143,9 +142,9 @@ class Robby:
             self.col -= 1
             return Reward.MOVE
 
-    # At the end of each episode, generate a new distribution of cans and place Robby in a random grid
-    # square to start the next episode. (Don’t reset the Q-matrix — you will keep updating this matrix
-    # over the N episodes. Keep track of the total reward gained per episode.
+    # "At the end of each episode, generate a new distribution of cans and place Robby in a random grid
+    # "square to start the next episode. (Don’t reset the Q-matrix — you will keep updating this matrix
+    # "over the N episodes. Keep track of the total reward gained per episode.
     def episode(self, episode_num, testing=False):
         reward = 0
 
@@ -158,23 +157,23 @@ class Robby:
 
         return reward
 
-    # At each time step t during an episode, your code should do the following:
-    # • Observe Robby’s current state s_t
-    # • Choose an action a_t, using -greedy action selection
-    # • Perform the action
-    # • Receive reward r_t (which is zero except in the cases specified above)
-    # • Observe Robby’s new state s_(t+1)
-    # • Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
+    # "At each time step t during an episode, your code should do the following:
+    # " • Observe Robby’s current state s_t
+    # " • Choose an action a_t, using -greedy action selection
+    # " • Perform the action
+    # " • Receive reward r_t (which is zero except in the cases specified above)
+    # " • Observe Robby’s new state s_(t+1)
+    # " • Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
     def time_step(self, episode_num, testing=False):
 
-        # Observe Robby’s current state s_t
+        # "Observe Robby’s current state s_t
         state = self.observe_state()
 
-        # Choose an action a_t, using -greedy action selection
+        # "Choose an action a_t, using -greedy action selection
         action = self.epsilon_greedy_action(state, episode_num, testing)
 
-        # Perform the action
-        # Receive reward r_t (which is zero except in the cases specified above)
+        # "Perform the action
+        # "Receive reward r_t (which is zero except in the cases specified above)
         if action == 0:
             reward = self.pick_up_can()
         elif action == 1:
@@ -186,10 +185,10 @@ class Robby:
         else:
             reward = self.move_west()
 
-        # Observe Robby’s new state s_(t+1)
+        # "Observe Robby’s new state s_(t+1)
         new_state = self.observe_state()
 
-        # Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
+        # "Update 𝑄(𝑠_𝑡, 𝑎_𝑡) = 𝑄(𝑠_𝑡, 𝑎_𝑡) + 𝜂(𝑟_𝑡 + 𝛾𝑚𝑎𝑥_𝑎′𝑄(𝑠_(𝑡+1), 𝑎′) − 𝑄(𝑠_𝑡, 𝑎_𝑡))
         if not testing:
             q = self.get_q(state, action)
 
@@ -199,21 +198,11 @@ class Robby:
             # new_q = q + self.decay(ETA, episode_num) * (reward + (GAMMA * max_a_q) - q)
             new_q = q + ETA * (reward + (GAMMA * max_a_q) - q)
 
-            # if reward < 0 and new_q > q:
-            #     print("bad1")
-            # elif reward > 0 and new_q < q:
-            #     print("bad2")
-            # else:
-            # if not (reward < 0 and new_q > q) and not (reward > 0 and new_q < q):
-            #    self.set_q(state, action, new_q)
-
             self.set_q(state, action, new_q)
 
         return reward
 
     def observe_state(self):
-        # state = list(range(5))
-        # state = [0, 0, 0, 0, 0]
         state = np.zeros(5)
         state[0] = self.current()
         state[1] = self.north()
@@ -247,9 +236,9 @@ class Robby:
         return actions[index]
 
     def epsilon_greedy_action(self, state, episode, testing):
-        # Choose an action a_t, using -greedy action selection
-        # For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
-        # decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
+        # "Choose an action a_t, using -greedy action selection
+        # "For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
+        # "decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
         # (I think 'epoch' is intended to mean 'episode' here)
         if testing:
             epsilon = EPSILON_TEST  # this is always 0.1 per assignment instructions
@@ -274,11 +263,7 @@ class Robby:
     # After doing some research on why I was getting unpredictable results,
     #   (that is to say, I was getting good results, just not consistently,)
     #   I discovered that it is common to decay your learning rate and that this
-    #   practice an help with convergence. My tests so far have confirmed that
-    #   this is indeed the case!
-    #
-    # Right now the decay is linear over the course of the total number of episodes.
-    # I may experiment with different decay functions to see if I can do even better!
+    #   practice can help with convergence. My tests so far have been inconclusive!
     @staticmethod
     def decay(eta, episode_num):
         # Exponential decay
@@ -294,71 +279,67 @@ def main():
 
     robby = Robby()
 
+    # Optional Information:
     # print("Initial World:")
     # print(robby.world)
     # print("Robby's location:")
     # print(robby.col, robby.row)
 
-    # Run the N episodes of learning, and plot the total sum of rewards per episode (plotting a point
-    # every 100 episodes). This plot—let’s call it the Training Reward plot—indicates the extent to
-    # which Robby is learning to improve his cumulative reward.
+    # "Run the N episodes of learning, and plot the total sum of rewards per episode (plotting a point
+    # "every 100 episodes). This plot — let’s call it the Training Reward plot — indicates the extent to
+    # "which Robby is learning to improve his cumulative reward.
     print("\tTRAINING\n\n")
     for e in range(EPISODES):
         r = robby.episode(e)
-        print("(Training) Episode", e, "reward:", r)  # r = robby.episode()
+        print("(Training) Episode", e, "reward:", r)
 
+    # build the training graph
     x_values = []
     y_values = []
-
     for i in range(int(len(robby.reward) / 100)):
         x_value = i * 100
         y_value = 0
-
         for j in range(100):
             y_value += robby.reward[i*100 + j]
         y_value /= 100
         x_values.append(x_value)
         y_values.append(y_value)
-
     plt.plot(x_values, y_values)
     plt.xlim([100, EPISODES])
     plt.ylim([-50, 550])  # average of 500 max reward, no real minimum
     plt.show()
 
-    # After training is completed, run N test episodes using your trained Q-matrix, but with  = 0.1 for
-    # all N episodes. Again, regenerate a grid of randomly placed cans at the beginning of each episode
-    # and also place Robby in a random grid location. Calculate the average over sum-of-rewards-per-
-    # episode, and the standard deviation. For simplicity in this writeup, let’s call these values Test-
-    # Average and Test-Standard-Deviation. These values indicate how a trained agent performs this
-    # task in new environments.
+    # "After training is completed, run N test episodes using your trained Q-matrix, but with  = 0.1 for
+    # "all N episodes. Again, regenerate a grid of randomly placed cans at the beginning of each episode
+    # "and also place Robby in a random grid location. Calculate the average over sum-of-rewards-per-
+    # "episode, and the standard deviation. For simplicity in this writeup, let’s call these values Test-
+    # "Average and Test-Standard-Deviation. These values indicate how a trained agent performs this
+    # "task in new environments.
     print("\tTESTING\n\n")
     robby.reset_reward()
     for e in range(EPISODES):
-        r = robby.episode(0, True)  # if I don't pass in an episode number, epsilon will never decay
-        print("(Testing) Episode", e, "reward:", r)  # r = robby.episode()
+        r = robby.episode(0, True)  # the episode number is unnecessary for testing
+        print("(Testing) Episode", e, "reward:", r)
 
+    # build the testing graph
     x_values = []
     y_values = []
-
     for i in range(int(len(robby.reward) / 100)):
         x_value = i * 100
         y_value = 0
-
         for j in range(100):
             y_value += robby.reward[i*100 + j]
         y_value /= 100
         x_values.append(x_value)
         y_values.append(y_value)
-
     plt.plot(x_values, y_values)
     plt.xlim([100, EPISODES])
-    plt.ylim([-50, 550])  # average of 500 max reward, no real minimum
+    plt.ylim([-50, 550])  # same settings as before
     plt.show()
 
-    #  Calculate the average over sum-of-rewards-per-episode, and the standard deviation.
-    #  For simplicity in this writeup, let’s call these values TestAverage and Test-Standard-Deviation.
-    #  These values indicate how a trained agent performs this task in new environments.
-
+    # "Calculate the average over sum-of-rewards-per-episode, and the standard deviation.
+    # "For simplicity in this writeup, let’s call these values TestAverage and Test-Standard-Deviation.
+    # "These values indicate how a trained agent performs this task in new environments.
     average = sum(y_values) / len(y_values)
     stddev = np.std(y_values)
     print("\n\tTESTING RESULTS:")
