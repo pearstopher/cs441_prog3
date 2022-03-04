@@ -8,7 +8,6 @@ import numpy as np
 import random
 from enum import IntEnum
 from matplotlib import pyplot as plt
-# from math import exp
 
 
 # CONSTANTS & CONFIGURATION
@@ -19,17 +18,15 @@ CHANCE = 0.5  # each grid square has a probability of 0.5 to contain a can
 #   N = 5,000 ; M = 200 ; 𝜂 = 0.2; 𝛾 = 0.9
 EPISODES = 5000
 STEPS = 200
-ETA = 0.1
+ETA = 0.2  # For Part 2: (0.1, 0.4, 0.7, 1.0)
 GAMMA = 0.9
 
 # For choosing actions with -greedy action selection, set  = 0.1 initially, and progressively
 # decrease it every 50 epochs or so until it reaches 0. After that, it stays at 0.
-# EPSILON = 0.1
-# EPSILON_STEP = 0.002  # 0.1/0.002/50 cools down at 2500 (halfway mark)
 EPSILON = 0.1
-EPSILON_STEP = 0.002
+EPSILON_STEP = 0.002  # 0.1/0.002/50 cools down at 2500 (halfway mark)
 EPSILON_INTERVAL = 50
-EPSILON_TEST = 0.1  # need to preserve correct testing value when changing training value
+EPSILON_TEST = 0.1  # need to preserve correct testing value if changing training value
 
 
 # enumeration of reward values
@@ -226,7 +223,8 @@ class Robby:
         return state
 
     def best_action(self, state):
-        # special case for when Robby cannot see any cans
+        # Rhodes' idea from slack: try a special case for when Robby cannot see any cans
+        #
         # all_empty = True
         # for s in state:
         #     if s == State.CAN or s == State.WALL:
@@ -240,13 +238,13 @@ class Robby:
         for i in range(len(action_values)):
             action_values[i] = self.get_q(state, i)
 
-        action = np.argmax(action_values)  # this always returns the first occurrence of the max
-        return action
-        # Instead I would like to return a randomly selected maximum value.
-        # This allows better exploration initially (when all squares are a max of zero).
-        # actions = np.argwhere(action_values == np.amax(action_values)).flatten().tolist()
-        # index = random.randrange(0, len(actions))
-        # return actions[index]
+        # return np.argmax(action_values)
+        # the above always returns the first occurrence of the max
+        # Instead, I would like to return a randomly selected maximum value.
+        # This allows for better exploration initially (when all squares are a max of zero).
+        actions = np.argwhere(action_values == max(action_values))
+        index = random.randrange(0, len(actions))
+        return actions[index]
 
     def epsilon_greedy_action(self, state, episode, testing):
         # Choose an action a_t, using -greedy action selection
@@ -283,7 +281,11 @@ class Robby:
     # I may experiment with different decay functions to see if I can do even better!
     @staticmethod
     def decay(eta, episode_num):
-        # return eta * exp(- (episode_num/(EPISODES/4)))
+        # Exponential decay
+        # from math import exp
+        # return eta * exp(- (episode_num/(EPISODES/4)))  # dividing by 4 gives a nice useful-looking shape
+
+        # Linear decay
         return eta * (EPISODES - episode_num)/EPISODES
 
 
